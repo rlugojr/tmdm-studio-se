@@ -18,7 +18,6 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -40,8 +39,6 @@ public class MDMServerExplorerPlugin extends AbstractUIPlugin {
 
     private Map<String, MDMServerMessageConsole> serverToConsole = null;
 
-
-
     /**
      * The constructor
      */
@@ -54,24 +51,18 @@ public class MDMServerExplorerPlugin extends AbstractUIPlugin {
         plugin = this;
         serverToConsole = new HashMap<String, MDMServerMessageConsole>();
 
-
         activateEEBundleIfExist();
     }
 
     private void activateEEBundleIfExist() {
-        Display disp = Display.getCurrent();
-        if(disp != null) {
-            disp.asyncExec(new Runnable() {
+        new Thread(new Runnable() {
 
-                public void run() {
-                    activate();
-                }
-            });
-        } else {
-            activate();
-        }
+            public void run() {
+                activate();
+            }
+        }).run();
     }
-    
+
     private void activate() {
         try {
             Bundle bundle = Platform.getBundle(PLUGIN_ID + ".enterprise"); //$NON-NLS-1$
@@ -82,7 +73,7 @@ public class MDMServerExplorerPlugin extends AbstractUIPlugin {
             log.error(e.getMessage(), e);
         }
     }
-    
+
     @Override
     public void stop(BundleContext context) throws Exception {
         if (serverToConsole != null) {
