@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -26,6 +27,7 @@ import org.talend.mdm.repository.core.AbstractRepositoryAction;
 import org.talend.mdm.repository.core.IRepositoryViewGlobalActionHandler;
 import org.talend.mdm.repository.i18n.Messages;
 import org.talend.mdm.repository.model.mdmproperties.ContainerItem;
+import org.talend.mdm.repository.utils.ResourceChangeListenerCacher;
 
 import com.amalto.workbench.image.EImage;
 import com.amalto.workbench.image.ImageCache;
@@ -64,6 +66,11 @@ public class RefreshAction extends AbstractRepositoryAction {
     }
 
     private void updateProject() {
+        List<IResourceChangeListener> listeners = ResourceChangeListenerCacher.getInstance().getResourceChangeListeners();
+        for (IResourceChangeListener listener : listeners) {
+            ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+        }
+
         final ProxyRepositoryFactory factory = ProxyRepositoryFactory.getInstance();
 
         try {
@@ -77,6 +84,10 @@ public class RefreshAction extends AbstractRepositoryAction {
             log.error(e.getMessage(), e);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        }
+
+        for (IResourceChangeListener listener : listeners) {
+            ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
         }
     }
 
